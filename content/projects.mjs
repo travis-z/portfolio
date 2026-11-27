@@ -23,23 +23,6 @@
 
 export const projects = [
   {
-    slug: "fpv-drone",
-    code: "FPV", // short label for dot ids, e.g. FPV·2
-    title: "FPV Drone",
-    color: "#e0601f",
-    years: "", // TODO
-    tagline: "TODO: one sentence on what you built and why.",
-    role: "", // TODO
-    links: [],
-    milestones: [
-      // TODO: replace these placeholders with real milestones.
-      { date: "", title: "Placeholder: the idea", text: "What you set out to build, and why." },
-      { date: "", title: "Placeholder: first build", text: "Frame, motors, electronics. What worked and what didn't." },
-      { date: "", title: "Placeholder: first flight", text: "How it flew, what broke, what you changed." },
-    ],
-  },
-
-  {
     slug: "trel",
     code: "TREL", // short label for dot ids, e.g. TREL·2
     title: "TREL",
@@ -108,6 +91,23 @@ export const projects = [
         text: "Hosting it on Cloudflare so anyone can open it from a link.",
         upcoming: true,
       },
+    ],
+  },
+
+  {
+    slug: "fpv-drone",
+    code: "FPV", // short label for dot ids, e.g. FPV·2
+    title: "FPV Drone",
+    color: "#e0601f",
+    years: "", // TODO
+    tagline: "TODO: one sentence on what you built and why.",
+    role: "", // TODO
+    links: [],
+    milestones: [
+      // TODO: replace these placeholders with real milestones.
+      { date: "", title: "Placeholder: the idea", text: "What you set out to build, and why." },
+      { date: "", title: "Placeholder: first build", text: "Frame, motors, electronics. What worked and what didn't." },
+      { date: "", title: "Placeholder: first flight", text: "How it flew, what broke, what you changed." },
     ],
   },
 
