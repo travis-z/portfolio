@@ -87,6 +87,7 @@ function indexRow(p, idx) {
     <span class="mini" aria-label="${esc(p.title)} milestones">
       <span class="mini-rail" style="left:${dotPos(0, n)}%;right:${100 - dotPos(n - 1, n)}%">
         <span class="mini-done" style="width:${n > 1 ? ((dotPos(lastDone, n) - dotPos(0, n)) / (dotPos(n - 1, n) - dotPos(0, n))) * 100 : 100}%"></span>
+        <span class="mini-hot"></span>
       </span>
       ${dots}
     </span>
@@ -101,6 +102,7 @@ function intro() {
     <p class="intro-line">${inline(site.intro)}</p>
     ${socialLinks("social")}
     <nav class="index" aria-label="Projects">
+      <p class="index-hint"><span>Projects</span><span class="hint-hover">Move along a line to see each step →</span><span class="hint-touch">Tap a dot to open that step</span></p>
       <ol>
         ${projects.map(indexRow).join("")}
       </ol>

@@ -85,6 +85,50 @@ function openMilestone(hash, smooth) {
   return true;
 }
 
+// The small timelines in the project list: anywhere along a line snaps to the
+// nearest dot, shows its card, and fills the line up to it. Clicking opens that step.
+for (const mini of document.querySelectorAll(".mini")) {
+  const dots = [...mini.querySelectorAll(".mdot")];
+  if (!dots.length) continue;
+  const row = mini.closest("li");
+  const hot = mini.querySelector(".mini-hot");
+  const xs = dots.map((d) => parseFloat(d.style.left));
+  const span = xs[xs.length - 1] - xs[0] || 1;
+  let cur = -1;
+
+  function pick(i) {
+    if (i === cur) return;
+    cur = i;
+    dots.forEach((d, k) => {
+      d.classList.toggle("is-hot", k === i);
+      d.classList.toggle("is-before", k < i);
+    });
+    hot.style.width = ((xs[i] - xs[0]) / span) * 100 + "%";
+  }
+  function clear() {
+    cur = -1;
+    row.classList.remove("is-scrubbing");
+    dots.forEach((d) => d.classList.remove("is-hot", "is-before"));
+  }
+
+  mini.addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    const r = mini.getBoundingClientRect();
+    const p = ((e.clientX - r.left) / r.width) * 100;
+    row.classList.add("is-scrubbing");
+    pick(xs.reduce((b, x, k) => (Math.abs(x - p) < Math.abs(xs[b] - p) ? k : b), 0));
+  });
+  mini.addEventListener("pointerleave", clear);
+  mini.addEventListener("click", (e) => {
+    if (cur < 0) return; // keyboard or touch: let the dot's own link handle it
+    const a = dots[cur];
+    e.preventDefault();
+    e.stopPropagation();
+    clear();
+    if (openMilestone(a.hash, true)) history.replaceState(null, "", a.hash);
+  });
+}
+
 document.addEventListener("click", (e) => {
   const a = e.target.closest("a.mdot");
   if (a && openMilestone(a.hash, true)) {
