@@ -42,7 +42,7 @@ export const projects = [
   {
     slug: "2dbeamcalc-motion",
     code: "BC", // short label for dot ids, e.g. BC·2
-    title: "2dbeamcalc-motion",
+    title: "2D Beam Calc: Motion",
     color: "#2d5bd8",
     years: "2026 – now",
     tagline:
