@@ -74,7 +74,7 @@ for (const sec of document.querySelectorAll(".project")) {
   ).observe(sec);
 }
 
-// Links like #kinematic-studio-3 (the dots in the project list, or a shared link)
+// Links like #2dbeamcalc-motion-3 (the dots in the project list, or a shared link)
 // open that project's timeline at that milestone.
 function openMilestone(hash, smooth) {
   const m = /^#(.+)-(\d+)$/.exec(hash || "");

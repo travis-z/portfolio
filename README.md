@@ -34,6 +34,6 @@ Live at **https://traviszavaleta.com** (also https://portfolio.traviszavaleta.wo
 
 A custom domain (e.g. `yourname.com`) can be bought through Cloudflare Registrar and attached in the Worker's **Settings → Domains & Routes**. Update `site.url` when you do.
 
-## Hosting Kinematic Studio next to it
+## The beam calculator
 
-Kinematic Studio is a separate Vite app, so give it its own Worker from the `kinematic-studio` repo, the same way: a `wrangler.jsonc` pointing at its `dist/`, build command `npm run build`. Then uncomment the "Try it live" link in `content/projects.mjs`. With a custom domain you could serve it at `studio.yourname.com`.
+2dbeamcalc-motion (the linkage and load app, formerly Kinematic Studio) is its own Worker, built from the private `travis-z/2dbeamcalc-motion` repo and live at https://2dbeamcalc-motion.traviszavaleta.workers.dev. The portfolio links to it with the "Try it" button. With the custom domain it could also be served at e.g. `app.traviszavaleta.com`.
