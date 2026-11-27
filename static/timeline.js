@@ -90,6 +90,7 @@ function openMilestone(hash, smooth) {
 for (const mini of document.querySelectorAll(".mini")) {
   const dots = [...mini.querySelectorAll(".mdot")];
   if (!dots.length) continue;
+  const thumbs = dots.map((d) => d.querySelector(".mthumb"));
   const row = mini.closest("li");
   const hot = mini.querySelector(".mini-hot");
   const xs = dots.map((d) => parseFloat(d.style.left));
@@ -109,6 +110,7 @@ for (const mini of document.querySelectorAll(".mini")) {
     cur = -1;
     row.classList.remove("is-scrubbing");
     dots.forEach((d) => d.classList.remove("is-hot", "is-before"));
+    thumbs.forEach((t) => t.style.removeProperty("--s"));
   }
 
   mini.addEventListener("pointermove", (e) => {
@@ -116,7 +118,15 @@ for (const mini of document.querySelectorAll(".mini")) {
     const r = mini.getBoundingClientRect();
     const p = ((e.clientX - r.left) / r.width) * 100;
     row.classList.add("is-scrubbing");
-    pick(xs.reduce((b, x, k) => (Math.abs(x - p) < Math.abs(xs[b] - p) ? k : b), 0));
+    const near = xs.reduce((b, x, k) => (Math.abs(x - p) < Math.abs(xs[b] - p) ? k : b), 0);
+    pick(near);
+    // Dock-style: thumbnails swell with closeness to the pointer; the nearest one is always big.
+    thumbs.forEach((t, k) => {
+      const px = (Math.abs(xs[k] - p) / 100) * r.width;
+      const f = Math.max(0, 1 - px / 110);
+      const s = k === near ? Math.max(1.6, 1 + 0.8 * f) : 1 + 0.45 * f * f;
+      t.style.setProperty("--s", s.toFixed(3));
+    });
   });
   mini.addEventListener("pointerleave", clear);
   mini.addEventListener("click", (e) => {

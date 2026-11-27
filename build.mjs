@@ -72,6 +72,7 @@ function indexRow(p, idx) {
       const side = x > 66 ? " tip-end" : x < 20 ? " tip-start" : "";
       return `<a class="mdot${m.upcoming ? " is-upcoming" : ""}${side}" href="#${p.slug}-${i + 1}" style="left:${x.toFixed(2)}%"
           aria-label="${esc(`${p.title}, ${d ? d.long : "step " + (i + 1)}: ${m.title}`)}">
+          <span class="mthumb">${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" decoding="async">` : `<span>${i + 1}</span>`}</span>
           <span class="mdot-tip" role="tooltip">
             ${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" decoding="async">` : ""}
             <span class="tip-when">${site.showDotIds ? `<b>${esc(dotId(p, i))}</b>` : ""}<span>${esc(d ? d.long : m.upcoming ? "Up next" : "Date to add")}</span></span>
@@ -84,7 +85,7 @@ function indexRow(p, idx) {
   return `<li style="--c:${esc(p.color)}">
     <span class="index-num">${String(idx + 1).padStart(2, "0")}</span>
     <a class="index-title" href="#${p.slug}">${esc(p.title)}</a>
-    <span class="mini" aria-label="${esc(p.title)} milestones">
+    <span class="mini" aria-label="${esc(p.title)} milestones" style="--t:${n > 6 ? 26 : 34}px">
       <span class="mini-rail" style="left:${dotPos(0, n)}%;right:${100 - dotPos(n - 1, n)}%">
         <span class="mini-done" style="width:${n > 1 ? ((dotPos(lastDone, n) - dotPos(0, n)) / (dotPos(n - 1, n) - dotPos(0, n))) * 100 : 100}%"></span>
         <span class="mini-hot"></span>
@@ -102,7 +103,6 @@ function intro() {
     <p class="intro-line">${inline(site.intro)}</p>
     ${socialLinks("social")}
     <nav class="index" aria-label="Projects">
-      <p class="index-hint"><span>Projects</span><span class="hint-hover">Move along a line to see each step →</span><span class="hint-touch">Tap a dot to open that step</span></p>
       <ol>
         ${projects.map(indexRow).join("")}
       </ol>
