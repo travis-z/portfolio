@@ -30,17 +30,16 @@ npm run dev
 
 Then open http://localhost:8090. Re-run after edits.
 
-## Deploy on Cloudflare (free)
+## Hosting
 
-1. Push this folder to its own GitHub repository.
-2. In the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect to Git**, pick the repo.
-3. Build settings: framework preset **None**, build command `node build.mjs`, output directory `dist`.
-4. Deploy. You get `https://<project-name>.pages.dev`. Put that in `site.url` in `content/site.mjs` so link previews show the right image, then push again.
+Live at **https://portfolio.traviszavaleta.workers.dev**, as a Cloudflare Worker named `portfolio` connected to the `travis-z/portfolio` GitHub repo. Every push to `main` rebuilds and redeploys it within a couple of minutes.
 
-Every push to `main` redeploys. Pushes to other branches get their own preview URL, handy for checking a new story before it goes live.
+- Cloudflare build settings: build command `npm run build`, deploy command `npx wrangler deploy`.
+- `wrangler.jsonc` tells Cloudflare to serve `dist/`. Its `name` must match the Worker's name in the dashboard, or the build fails.
+- `site.url` in `content/site.mjs` must be the live address, so link previews (LinkedIn, Slack, email) show the right image.
 
-A custom domain (e.g. `yourname.com`) can be bought through Cloudflare Registrar and attached under the project's **Custom domains** tab.
+A custom domain (e.g. `yourname.com`) can be bought through Cloudflare Registrar and attached in the Worker's **Settings → Domains & Routes**. Update `site.url` when you do.
 
 ## Hosting Kinematic Studio next to it
 
-Kinematic Studio is a separate Vite app, so give it its own Cloudflare Pages project from the `kinematic-studio` repo: build command `npm run build`, output directory `dist`, and environment variable `NODE_VERSION` = `22`. Then uncomment the "Try it live" link in `content/projects.mjs`. With a custom domain you could serve it at `studio.yourname.com`.
+Kinematic Studio is a separate Vite app, so give it its own Worker from the `kinematic-studio` repo, the same way: a `wrangler.jsonc` pointing at its `dist/`, build command `npm run build`. Then uncomment the "Try it live" link in `content/projects.mjs`. With a custom domain you could serve it at `studio.yourname.com`.

@@ -14,5 +14,5 @@ export const site = {
   github: "https://github.com/travis-z",
   resume: "", // e.g. "/resume.pdf" (put the PDF in static/)
   // Address the site will live at. Used for link previews (LinkedIn, Slack, email).
-  url: "https://your-site.pages.dev", // TODO: set after the first Cloudflare deploy
+  url: "https://portfolio.traviszavaleta.workers.dev",
 };
