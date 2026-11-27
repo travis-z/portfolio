@@ -1,5 +1,7 @@
 // Timeline scrubbing: move the pointer along a project's line (or drag on a phone)
 // and the frame above jumps to the nearest milestone. Arrow keys work on focused stops.
+const showers = {}; // project id -> function that shows milestone i
+
 for (const sec of document.querySelectorAll(".project")) {
   const track = sec.querySelector(".track");
   const head = sec.querySelector(".playhead");
@@ -59,6 +61,7 @@ for (const sec of document.querySelectorAll(".project")) {
   });
 
   show(Math.min(+sec.dataset.active || 0, stops.length - 1));
+  showers[sec.id] = show;
 
   // Load every image in this timeline once it's near the screen, so scrubbing never waits.
   new IntersectionObserver(
@@ -70,3 +73,23 @@ for (const sec of document.querySelectorAll(".project")) {
     { rootMargin: "400px" }
   ).observe(sec);
 }
+
+// Links like #kinematic-studio-3 (the dots in the project list, or a shared link)
+// open that project's timeline at that milestone.
+function openMilestone(hash, smooth) {
+  const m = /^#(.+)-(\d+)$/.exec(hash || "");
+  const sec = m && document.getElementById(m[1]);
+  if (!sec || !showers[m[1]]) return false;
+  showers[m[1]](+m[2] - 1);
+  sec.scrollIntoView({ behavior: smooth ? "smooth" : "instant", block: "start" });
+  return true;
+}
+
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a.mdot");
+  if (a && openMilestone(a.hash, true)) {
+    e.preventDefault();
+    history.replaceState(null, "", a.hash);
+  }
+});
+openMilestone(location.hash, false);

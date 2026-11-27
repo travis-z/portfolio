@@ -2,6 +2,7 @@
 //
 // Project fields:
 //   slug     short id used in the link, e.g. /#fpv-drone (lowercase, dashes)
+//   code     short label for its dots, e.g. "FPV" gives FPV·1, FPV·2 …
 //   title    name shown on the page
 //   color    the timeline's color
 //   years    e.g. "2024 – 2025" or "2025 – now"
@@ -12,6 +13,8 @@
 // Milestones (the stops on the timeline, oldest first):
 //   date      "2025-03-14", "2025-03" or "2025". Leave "" if you don't know it yet.
 //   title     a few words
+//   short     one sentence for the hover card in the project list at the top
+//             (if left out, the first sentence of text is used)
 //   text      1–3 sentences: where the project stood at this point
 //   image     a photo or screenshot, e.g. "/img/fpv-drone/first-flight.jpg"
 //             (put images in static/img/<slug>/; landscape, about 1600px wide)
@@ -21,6 +24,7 @@
 export const projects = [
   {
     slug: "fpv-drone",
+    code: "FPV", // short label for dot ids, e.g. FPV·2
     title: "FPV Drone",
     color: "#e0601f",
     years: "", // TODO
@@ -37,6 +41,7 @@ export const projects = [
 
   {
     slug: "trel",
+    code: "TREL", // short label for dot ids, e.g. TREL·2
     title: "TREL",
     color: "#7b4bc4",
     years: "", // TODO
@@ -53,6 +58,7 @@ export const projects = [
 
   {
     slug: "kinematic-studio",
+    code: "KS", // short label for dot ids, e.g. KS·2
     title: "Kinematic Studio",
     color: "#2d5bd8",
     years: "2026 – now",
@@ -67,6 +73,7 @@ export const projects = [
       {
         date: "2026-10-08",
         title: "First working version",
+        short: "First version: the math worked, the screen was crowded.",
         text: "The math came first: a solver that finds every link's position as the mechanism moves, and the force each joint and motor has to hold. It worked, but the screen was crowded.",
         image: "/img/kinematic-studio/v1-fourbar-motion.jpg",
         imageAlt: "First version of Kinematic Studio simulating a four-bar linkage, with motion charts underneath.",
@@ -74,6 +81,7 @@ export const projects = [
       {
         date: "2026-10-09",
         title: "Redesign, same numbers",
+        short: "Redesigned the look without changing a single result.",
         text: "Cut 15 font sizes down to 4 and about 80 one-off colors down to one palette. No solver code changed, and the tests showed every result stayed identical.",
         image: "/img/kinematic-studio/v2-fourbar-motion.jpg",
         imageAlt: "The same four-bar linkage after the visual redesign.",
@@ -81,6 +89,7 @@ export const projects = [
       {
         date: "2026-11-26",
         title: "Laid out like CAD",
+        short: "Rebuilt the layout to work like SolidWorks.",
         text: "Rebuilt around how SolidWorks users already work: tools in build order, a model tree, a properties panel, play/stop for the motion, and sketch relations between links.",
         image: "/img/kinematic-studio/v3-fourbar-motion.jpg",
         imageAlt: "CAD-style layout with a model tree on the left, properties on the right and the linkage in the middle.",
@@ -88,6 +97,7 @@ export const projects = [
       {
         date: "2026-11-27",
         title: "Joint loads you can design to",
+        short: "Shows the force and moment every joint has to carry.",
         text: "Axial force, shear and moment at every weld or pin, at the worst pose, plus the swing over the whole motion for fatigue checks.",
         image: "/img/kinematic-studio/joint-loads.jpg",
         imageAlt: "A motor-driven arm carrying payloads, with the weld's force and moment table underneath.",
@@ -103,6 +113,7 @@ export const projects = [
 
   {
     slug: "texas-aerial-robotics",
+    code: "TAR", // short label for dot ids, e.g. TAR·2
     title: "Texas Aerial Robotics",
     color: "#1f8a5b",
     years: "", // TODO
