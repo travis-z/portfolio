@@ -26,7 +26,7 @@ Then open http://localhost:8090. Re-run after edits.
 
 ## Hosting
 
-Live at **https://portfolio.traviszavaleta.workers.dev**, as a Cloudflare Worker named `portfolio` connected to the `travis-z/portfolio` GitHub repo. Every push to `main` rebuilds and redeploys it within a couple of minutes.
+Live at **https://traviszavaleta.com** (also https://portfolio.traviszavaleta.workers.dev), as a Cloudflare Worker named `portfolio` connected to the `travis-z/portfolio` GitHub repo. Every push to `main` rebuilds and redeploys it within a couple of minutes.
 
 - Cloudflare build settings: build command `npm run build`, deploy command `npx wrangler deploy`.
 - `wrangler.jsonc` tells Cloudflare to serve `dist/`. Its `name` must match the Worker's name in the dashboard, or the build fails.

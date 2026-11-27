@@ -13,7 +13,7 @@ export const site = {
   instagram: "https://www.instagram.com/traviszavaleta/",
   email: "", // optional, e.g. "you@example.com"
   resume: "", // optional, e.g. "/resume.pdf" (put the PDF in static/)
-  url: "https://portfolio.traviszavaleta.workers.dev", // the live address, for link previews
+  url: "https://traviszavaleta.com", // the live address, for link previews
   // Shows labels like KS·3 on every dot so you can point at one while editing.
   // Set to false before sharing the site.
   showDotIds: true,
