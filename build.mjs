@@ -1,234 +1,185 @@
 // Builds the site into dist/. No dependencies: run with `node build.mjs`.
 import { cpSync, mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { site } from "./content/site.mjs";
-import { projects as allProjects } from "./content/projects.mjs";
+import { projects } from "./content/projects.mjs";
 
 const OUT = "dist";
-const projects = allProjects.filter((p) => !p.draft);
 
 // ---------- helpers ----------
 const esc = (s = "") =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-function inline(text) {
-  const codes = [];
-  let s = esc(text).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
-  s = s
+// **bold**, *italic*, [link](url)
+const inline = (t = "") =>
+  esc(t)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => {
-      const ext = /^https?:/.test(u);
-      return `<a href="${u}"${ext ? ' target="_blank" rel="noopener"' : ""}>${t}</a>`;
-    });
-  return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[i]}</code>`);
-}
-
-function md(text = "") {
-  return text
-    .trim()
-    .split(/\n\s*\n/)
-    .map((block) => {
-      const lines = block.trim().split("\n");
-      if (lines.every((l) => /^\s*- /.test(l)))
-        return `<ul>${lines.map((l) => `<li>${inline(l.replace(/^\s*- /, ""))}</li>`).join("")}</ul>`;
-      return `<p>${inline(lines.join(" "))}</p>`;
-    })
-    .join("\n");
-}
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function fmtDate(d) {
-  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(d || "");
-  if (!m) return { short: d, year: "" };
-  const mon = MONTHS[+m[2] - 1];
-  return { short: m[3] ? `${mon} ${+m[3]}` : mon, year: m[1] };
+function parseDate(d) {
+  const m = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/.exec(d || "");
+  if (!m) return null;
+  const mon = m[2] ? MONTHS[+m[2] - 1] : "";
+  const day = m[3] ? +m[3] : "";
+  return {
+    year: m[1],
+    short: day ? `${mon} ${day}` : mon || m[1],
+    long: day ? `${mon} ${day}, ${m[1]}` : mon ? `${mon} ${m[1]}` : m[1],
+  };
 }
 
-const abs = (path) => (path && !/^https?:/.test(path) ? site.url.replace(/\/$/, "") + path : path);
+const abs = (p) => (p && !/^https?:/.test(p) ? site.url.replace(/\/$/, "") + p : p);
+const ext = (u) => (/^https?:/.test(u) ? ' target="_blank" rel="noopener"' : "");
 
-function img({ src, alt = "", caption = "" }, cls = "") {
-  return `<figure class="${cls}">
-  <a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async"></a>
-  ${caption ? `<figcaption>${inline(caption)}</figcaption>` : ""}
-</figure>`;
-}
+const ICONS = {
+  linkedin:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4V21H3zM9.5 9.75h3.8v1.6h.06c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.77 2.6 4.77 6V21h-4v-5c0-1.2-.02-2.73-1.66-2.73-1.67 0-1.92 1.3-1.92 2.64V21h-4z"/></svg>',
+  github:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.4c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.82 1.19 3.08 0 4.41-2.7 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>',
+  instagram:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.58 0 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s0 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58 0-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92C2.17 15.58 2.16 15.2 2.16 12s0-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16zM12 0C8.74 0 8.33 0 7.05.07 2.7.27.27 2.69.07 7.05 0 8.33 0 8.74 0 12s0 3.67.07 4.95c.2 4.36 2.62 6.78 6.98 6.98C8.33 24 8.74 24 12 24s3.67 0 4.95-.07c4.35-.2 6.78-2.62 6.98-6.98.06-1.28.07-1.69.07-4.95s0-3.67-.07-4.95c-.2-4.35-2.62-6.78-6.98-6.98C15.67 0 15.26 0 12 0zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"/></svg>',
+};
 
-function links(list = []) {
-  return list
-    .filter((l) => l && l.url)
-    .map(
-      (l, i) =>
-        `<a class="btn${i === 0 ? " btn-primary" : ""}" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}<span aria-hidden="true">↗</span></a>`
-    )
-    .join("");
-}
-
-function contactLinks() {
+function socialLinks(cls) {
   const items = [
-    site.email && [`mailto:${site.email}`, "Email"],
-    site.linkedin && [site.linkedin, "LinkedIn"],
-    site.github && [site.github, "GitHub"],
-    site.resume && [site.resume, "Résumé"],
+    site.linkedin && ["linkedin", site.linkedin, "LinkedIn"],
+    site.github && ["github", site.github, "GitHub"],
+    site.instagram && ["instagram", site.instagram, "Instagram"],
+    site.email && ["", `mailto:${site.email}`, "Email"],
+    site.resume && ["", site.resume, "Résumé"],
   ].filter(Boolean);
-  return items
-    .map(([u, t]) => `<a href="${esc(u)}"${/^https?:/.test(u) ? ' target="_blank" rel="noopener"' : ""}>${t}</a>`)
-    .join("");
+  return `<ul class="${cls}">${items
+    .map(([icon, url, label]) => `<li><a href="${esc(url)}"${ext(url)}>${ICONS[icon] || ""}<span>${label}</span></a></li>`)
+    .join("")}</ul>`;
 }
 
-function page({ title, description, path, image, body }) {
+// ---------- sections ----------
+function intro() {
+  return `<section class="intro">
+  <figure class="portrait"><img src="${esc(site.photo)}" alt="${esc(site.photoAlt)}" width="880" height="1100" fetchpriority="high"></figure>
+  <div class="intro-text">
+    <h1>${esc(site.name).replace(" ", "<br>")}</h1>
+    <p class="intro-line">${inline(site.intro)}</p>
+    ${socialLinks("social")}
+    <nav class="index" aria-label="Projects">
+      <ol>
+        ${projects
+          .map(
+            (p, i) => `<li style="--c:${esc(p.color)}"><a href="#${p.slug}">
+          <span class="index-num">${String(i + 1).padStart(2, "0")}</span>
+          <span class="index-title">${esc(p.title)}</span>
+          <span class="index-line" aria-hidden="true"></span>
+          <span class="index-years">${esc(p.years)}</span></a></li>`
+          )
+          .join("")}
+      </ol>
+    </nav>
+  </div>
+</section>`;
+}
+
+function frame(p, m, i, n) {
+  const d = parseDate(m.date);
+  const when = d ? d.long : m.upcoming ? "Up next" : "Date to add";
+  const media = m.image
+    ? `<img src="${esc(m.image)}" alt="${esc(m.imageAlt || "")}" loading="lazy" decoding="async">`
+    : `<div class="no-image" aria-hidden="true"><span>${String(i + 1).padStart(2, "0")}</span></div>`;
+  return `<article class="frame${m.upcoming ? " is-upcoming" : ""}" data-i="${i}" id="${p.slug}-${i + 1}">
+    <div class="frame-media">${media}</div>
+    <div class="frame-text">
+      <p class="frame-when"><time${d ? ` datetime="${esc(m.date)}"` : ""}>${esc(when)}</time><span>${i + 1} / ${n}</span></p>
+      <h3>${inline(m.title)}</h3>
+      <p>${inline(m.text)}</p>
+    </div>
+  </article>`;
+}
+
+function project(p, idx) {
+  const ms = p.milestones || [];
+  const n = ms.length;
+  const pos = (i) => (n === 1 ? 50 : 3 + (i * 94) / (n - 1));
+  const lastDone = Math.max(0, ms.map((m) => !m.upcoming).lastIndexOf(true));
+  let prevYear = "";
+  const stops = ms
+    .map((m, i) => {
+      const d = parseDate(m.date);
+      const label = d ? d.short : m.upcoming ? "Next" : `Step ${i + 1}`;
+      const year = d && d.year !== prevYear && d.short !== d.year ? d.year : "";
+      if (d) prevYear = d.year;
+      return `<a class="stop${m.upcoming ? " is-upcoming" : ""}" href="#${p.slug}-${i + 1}" data-i="${i}" style="left:${pos(i).toFixed(2)}%" aria-label="${esc((d ? d.long : label) + ": " + m.title)}">
+        <span class="stop-dot"></span><span class="stop-label">${esc(label)}${year ? `<small>${year}</small>` : ""}</span></a>`;
+    })
+    .join("");
+  const meta = [p.role].filter(Boolean).map(esc).join(" · ");
+  const links = (p.links || [])
+    .filter((l) => l.url)
+    .map((l) => `<a href="${esc(l.url)}"${ext(l.url)}>${esc(l.label)} ↗</a>`)
+    .join("");
+
+  return `<section class="project" id="${p.slug}" style="--c:${esc(p.color)}" data-active="${lastDone}">
+  <header class="p-head">
+    <span class="p-num">${String(idx + 1).padStart(2, "0")}</span>
+    <div class="p-title">
+      <h2>${esc(p.title)}</h2>
+      <p class="p-tagline">${inline(p.tagline)}</p>
+    </div>
+    <div class="p-side">
+      ${p.years ? `<p class="p-years">${esc(p.years)}</p>` : ""}
+      ${meta ? `<p class="p-meta">${meta}</p>` : ""}
+      ${links ? `<p class="p-links">${links}</p>` : ""}
+    </div>
+  </header>
+  <div class="viewer">
+    <div class="stage">${ms.map((m, i) => frame(p, m, i, n)).join("")}</div>
+    <div class="track" aria-label="${esc(p.title)} timeline">
+      <div class="rail" style="left:${pos(0)}%;right:${100 - pos(n - 1)}%">
+        <span class="rail-done" style="width:${n > 1 ? ((pos(lastDone) - pos(0)) / (pos(n - 1) - pos(0))) * 100 : 100}%"></span>
+        <span class="rail-fill"></span>
+      </div>
+      <span class="playhead" aria-hidden="true"></span>
+      ${stops}
+    </div>
+  </div>
+</section>`;
+}
+
+function page() {
+  const title = `${site.name}: projects`;
+  const firstImage = projects.flatMap((p) => p.milestones || []).find((m) => m.image)?.image;
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}">
-<link rel="canonical" href="${esc(abs(path))}">
-<meta property="og:type" content="website">
+<title>${esc(site.name)}</title>
+<meta name="description" content="${esc(site.intro)}">
+<link rel="canonical" href="${esc(abs("/"))}">
+<meta property="og:type" content="profile">
 <meta property="og:title" content="${esc(title)}">
-<meta property="og:description" content="${esc(description)}">
-<meta property="og:url" content="${esc(abs(path))}">
-${image ? `<meta property="og:image" content="${esc(abs(image))}">\n<meta name="twitter:card" content="summary_large_image">` : ""}
+<meta property="og:description" content="${esc(site.intro)}">
+<meta property="og:url" content="${esc(abs("/"))}">
+<meta property="og:image" content="${esc(abs(site.photo || firstImage))}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
+<script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
-<header class="site-header"><div class="wrap">
-  <a class="brand" href="/">${esc(site.name)}</a>
-  <nav>${path === "/" ? "" : '<a href="/#projects">Projects</a>'}${contactLinks()}</nav>
-</div></header>
 <main>
-${body}
+${intro()}
+${projects.map(project).join("\n")}
 </main>
-<footer class="site-footer"><div class="wrap">
-  <span>© ${new Date().getFullYear()} ${esc(site.name)}</span>
-  <nav>${contactLinks()}</nav>
-</div></footer>
+<footer class="foot">
+  <p>${esc(site.name)}</p>
+  ${socialLinks("foot-links")}
+</footer>
+<script src="/timeline.js" defer></script>
 </body>
 </html>
 `;
-}
-
-// ---------- home ----------
-function projectCard(p) {
-  const steps = p.timeline || [];
-  const done = steps.filter((s) => !s.upcoming);
-  return `<article class="card">
-  <a class="card-link" href="/projects/${p.slug}/" aria-label="${esc(p.title)}: read the story"></a>
-  ${p.cover ? `<div class="card-media"><img src="${esc(p.cover)}" alt="${esc(p.coverAlt || "")}" loading="lazy"></div>` : ""}
-  <div class="card-body">
-    <div class="meta-line"><span class="status status-${esc((p.status || "").toLowerCase())}">${esc(p.status)}</span><span>${esc(p.period)}</span></div>
-    <h3>${esc(p.title)}</h3>
-    <p>${inline(p.tagline)}</p>
-    <ol class="mini-timeline" aria-label="Milestones">
-      ${steps.map((s) => `<li class="${s.upcoming ? "upcoming" : ""}" title="${esc(fmtDate(s.date).short + " · " + s.title)}"><span></span></li>`).join("")}
-    </ol>
-    <div class="card-foot">
-      <span class="muted">${done.length} milestone${done.length === 1 ? "" : "s"}${p.tools?.length ? " · " + esc(p.tools.slice(0, 3).join(", ")) : ""}</span>
-      <span class="read">Read the story →</span>
-    </div>
-  </div>
-</article>`;
-}
-
-function home() {
-  return page({
-    title: `${site.name} · ${site.headline}`,
-    description: site.intro,
-    path: "/",
-    image: projects[0]?.cover,
-    body: `
-<section class="hero wrap">
-  <p class="eyebrow">${esc([site.location].filter(Boolean).join(" · ") || "Portfolio")}</p>
-  <h1>${esc(site.headline)}</h1>
-  <p class="lede">${inline(site.intro)}</p>
-  <div class="hero-links">${contactLinks()}</div>
-</section>
-<section id="projects" class="wrap">
-  <h2 class="section-title">Projects</h2>
-  <div class="cards">
-    ${projects.map(projectCard).join("\n")}
-  </div>
-</section>`,
-  });
-}
-
-// ---------- project ----------
-function entry(e, i) {
-  const d = fmtDate(e.date);
-  const compare = e.compare
-    ? `<div class="compare">
-        ${img({ ...e.compare.before, caption: "" }, "before")}
-        ${img({ ...e.compare.after, caption: "" }, "after")}
-       </div>${e.compare.caption ? `<p class="compare-caption">${inline(e.compare.caption)}</p>` : ""}`
-    : "";
-  return `<li class="entry${e.upcoming ? " upcoming" : ""}" id="step-${i + 1}">
-  <div class="when"><time${/^\d{4}/.test(e.date) ? ` datetime="${esc(e.date)}"` : ""}>${esc(d.short)}</time><span class="year">${esc(d.year)}</span></div>
-  <div class="dot" aria-hidden="true"></div>
-  <div class="what">
-    ${e.tag ? `<span class="tag">${esc(e.tag)}</span>` : ""}
-    <h3>${inline(e.title)}</h3>
-    <div class="prose">${md(e.body)}</div>
-    ${compare}
-    ${(e.images || []).map((im) => img(im, "shot")).join("")}
-  </div>
-</li>`;
-}
-
-function projectPage(p, idx) {
-  const next = projects[(idx + 1) % projects.length];
-  const s = p.summary || {};
-  return page({
-    title: `${p.title} · ${site.name}`,
-    description: p.tagline,
-    path: `/projects/${p.slug}/`,
-    image: p.cover,
-    body: `
-<article class="project">
-  <header class="project-head wrap">
-    <a class="back" href="/#projects">← All projects</a>
-    <div class="meta-line"><span class="status status-${esc((p.status || "").toLowerCase())}">${esc(p.status)}</span><span>${esc(p.period)}</span></div>
-    <h1>${esc(p.title)}</h1>
-    <p class="lede">${inline(p.tagline)}</p>
-    <dl class="facts">
-      ${p.role ? `<div><dt>Role</dt><dd>${esc(p.role)}</dd></div>` : ""}
-      ${p.tools?.length ? `<div><dt>Tools</dt><dd>${p.tools.map(esc).join(", ")}</dd></div>` : ""}
-    </dl>
-    <div class="actions">${links(p.links)}</div>
-  </header>
-
-  ${p.cover ? `<div class="wrap wide">${img({ src: p.cover, alt: p.coverAlt }, "cover")}</div>` : ""}
-
-  <section class="wrap summary" aria-label="Summary">
-    ${["problem", "approach", "outcome"]
-      .filter((k) => s[k])
-      .map((k) => `<div><h2>${k[0].toUpperCase() + k.slice(1)}</h2><p>${inline(s[k])}</p></div>`)
-      .join("")}
-  </section>
-
-  <section class="wrap">
-    <h2 class="section-title">Timeline</h2>
-    <ol class="timeline">
-      ${(p.timeline || []).map(entry).join("\n")}
-    </ol>
-  </section>
-
-  ${
-    p.lessons?.length
-      ? `<section class="wrap lessons"><h2 class="section-title">What I learned</h2><ul>${p.lessons.map((l) => `<li>${inline(l)}</li>`).join("")}</ul></section>`
-      : ""
-  }
-
-  ${
-    projects.length > 1
-      ? `<nav class="wrap next"><a href="/projects/${next.slug}/"><span class="muted">Next project</span><strong>${esc(next.title)} →</strong></a></nav>`
-      : `<nav class="wrap next"><a href="/#projects"><span class="muted">Back to</span><strong>All projects →</strong></a></nav>`
-  }
-</article>`,
-  });
 }
 
 // ---------- write ----------
@@ -237,25 +188,17 @@ for (const p of projects) {
   if (!/^[a-z0-9-]+$/.test(p.slug)) throw new Error(`Bad slug "${p.slug}": use lowercase letters, numbers and dashes`);
   if (slugs.has(p.slug)) throw new Error(`Duplicate slug "${p.slug}"`);
   slugs.add(p.slug);
-  for (const im of [p.cover, ...(p.timeline || []).flatMap((e) => [...(e.images || []).map((i) => i.src), e.compare?.before?.src, e.compare?.after?.src])])
-    if (im && !/^https?:/.test(im) && !existsSync("static" + im)) console.warn(`! ${p.slug}: missing image static${im}`);
+  for (const m of p.milestones || [])
+    if (m.image && !/^https?:/.test(m.image) && !existsSync("static" + m.image)) console.warn(`! ${p.slug}: missing image static${m.image}`);
 }
+if (site.photo && !existsSync("static" + site.photo)) console.warn(`! missing photo static${site.photo}`);
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 cpSync("static", OUT, { recursive: true });
-writeFileSync(`${OUT}/index.html`, home());
-projects.forEach((p, i) => {
-  mkdirSync(`${OUT}/projects/${p.slug}`, { recursive: true });
-  writeFileSync(`${OUT}/projects/${p.slug}/index.html`, projectPage(p, i));
-});
+writeFileSync(`${OUT}/index.html`, page());
 writeFileSync(
   `${OUT}/404.html`,
-  page({
-    title: `Not found · ${site.name}`,
-    description: "Page not found",
-    path: "/404",
-    body: `<section class="hero wrap"><h1>That page isn't here.</h1><p class="lede"><a href="/">Back to the home page →</a></p></section>`,
-  })
+  `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found</title><link rel="stylesheet" href="/style.css"></head><body><main class="missing"><h1>Nothing here.</h1><p><a href="/">Back to ${esc(site.name)} →</a></p></main></body></html>`
 );
-console.log(`Built ${projects.length} project page(s) into ${OUT}/`);
+console.log(`Built ${projects.length} project timeline(s) into ${OUT}/`);

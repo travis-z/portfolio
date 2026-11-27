@@ -1,26 +1,20 @@
 # Portfolio
 
-A plain static site: each project is a story told as a timeline. No framework, no dependencies; `node build.mjs` writes the finished site to `dist/`.
+One page: a photo and links at the top, then one timeline per project. Moving the mouse along a project's line (or dragging on a phone) scrubs through its milestones, and the image and text above update to show where the project stood. No framework, no dependencies; `node build.mjs` writes the finished site to `dist/`.
 
 ## Editing
 
 | What | Where |
 |---|---|
-| Your name, intro, contact links | `content/site.mjs` |
-| Projects and their timelines | `content/projects.mjs` |
-| Images | `static/img/<project-slug>/` (reference them as `/img/<project-slug>/file.jpg`) |
+| Name, photo, intro line, links | `content/site.mjs` |
+| Projects and their milestones | `content/projects.mjs` (the field list is at the top of the file) |
+| Images | `static/img/<project-slug>/`, referenced as `/img/<project-slug>/file.jpg` |
 | Look and feel | `static/style.css` |
+| Scrubbing behavior | `static/timeline.js` |
 
-To add a project, copy the `TEMPLATE` block at the bottom of `content/projects.mjs`, fill it in, and set `draft: false`. Projects show in the order they appear in the list. Drafts are left out of the build.
+Projects appear in the order they're listed. Each timeline opens on its most recent finished milestone, so visitors see where the project is now. Milestones without an image show a numbered tile in the project's color.
 
-Each timeline entry can have:
-- `date`: `"2026-10-08"`, `"2026-10"`, or any text such as `"Next"`
-- `title`, `tag` (a short label like Build, Test, Design), `body` (a little Markdown)
-- `images`: a list of `{ src, alt, caption }`
-- `compare`: `{ before: { src, alt }, after: { src, alt }, caption }` for a side-by-side
-- `upcoming: true` to draw it as a planned step
-
-Screenshots: save as JPEG around 1400–1600 px wide to keep pages fast. On a Mac, `sips -s format jpeg -s formatOptions 80 in.png --out out.jpg`.
+Images: landscape, about 1600 px wide, JPEG. On a Mac, `sips -Z 1600 -s format jpeg -s formatOptions 80 in.png --out out.jpg`.
 
 ## Preview locally
 

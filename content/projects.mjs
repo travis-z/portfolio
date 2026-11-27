@@ -1,159 +1,119 @@
-// Every project is one object in this list, shown on the home page in this order.
-// Each one gets its own page at /projects/<slug>/ with its story as a timeline.
+// Each project is one timeline on the page, in this order.
 //
-// Text fields accept a little Markdown: **bold**, *italic*, `code`, [links](https://…),
-// blank lines between paragraphs, and "- " bullet lists.
+// Project fields:
+//   slug     short id used in the link, e.g. /#fpv-drone (lowercase, dashes)
+//   title    name shown on the page
+//   color    the timeline's color
+//   years    e.g. "2024 – 2025" or "2025 – now"
+//   tagline  one sentence on what it is
+//   role     your part in it, e.g. "Propulsion team, 1 of 12"
+//   links    buttons: [{ label, url }]
 //
-// Copy the TEMPLATE at the bottom of this file to start a new project.
+// Milestones (the stops on the timeline, oldest first):
+//   date      "2025-03-14", "2025-03" or "2025". Leave "" if you don't know it yet.
+//   title     a few words
+//   text      1–3 sentences: where the project stood at this point
+//   image     a photo or screenshot, e.g. "/img/fpv-drone/first-flight.jpg"
+//             (put images in static/img/<slug>/; landscape, about 1600px wide)
+//   imageAlt  what the image shows, for screen readers
+//   upcoming  true for a step that hasn't happened yet
 
 export const projects = [
   {
+    slug: "fpv-drone",
+    title: "FPV Drone",
+    color: "#e0601f",
+    years: "", // TODO
+    tagline: "TODO: one sentence on what you built and why.",
+    role: "", // TODO
+    links: [],
+    milestones: [
+      // TODO: replace these placeholders with real milestones.
+      { date: "", title: "Placeholder: the idea", text: "What you set out to build, and why." },
+      { date: "", title: "Placeholder: first build", text: "Frame, motors, electronics. What worked and what didn't." },
+      { date: "", title: "Placeholder: first flight", text: "How it flew, what broke, what you changed." },
+    ],
+  },
+
+  {
+    slug: "trel",
+    title: "TREL",
+    color: "#7b4bc4",
+    years: "", // TODO
+    tagline: "TODO: one sentence on what TREL is and what you worked on.",
+    role: "", // TODO
+    links: [],
+    milestones: [
+      // TODO: replace these placeholders with real milestones.
+      { date: "", title: "Placeholder: joined the team", text: "What team or subsystem you joined and what it was working toward." },
+      { date: "", title: "Placeholder: your first part", text: "Something you designed, built or tested." },
+      { date: "", title: "Placeholder: test or launch", text: "What happened and what the team learned." },
+    ],
+  },
+
+  {
     slug: "kinematic-studio",
     title: "Kinematic Studio",
+    color: "#2d5bd8",
+    years: "2026 – now",
     tagline:
-      "A browser tool for designing planar linkages, simulating their motion, and finding the loads every joint and motor has to carry.",
-    status: "Active", // Active · Shipped · Completed · Paused
-    period: "Oct 2026 – present",
-    role: "Solo: engineering, solver, UI", // TODO: confirm
-    tools: ["TypeScript", "React", "Web Workers", "Vitest", "Playwright"],
-    cover: "/img/kinematic-studio/v3-fourbar-motion.jpg",
-    coverAlt:
-      "Kinematic Studio showing a four-bar linkage with its coupler path traced, and position, velocity and acceleration charts below.",
+      "A browser tool for designing linkages: sketch a mechanism, run it through its motion, and see the load on every joint and motor.",
+    role: "Solo project", // TODO: confirm
     links: [
-      // { label: "Try it live", url: "https://kinematic-studio.pages.dev" }, // TODO: uncomment after deploying
-      { label: "Source on GitHub", url: "https://github.com/travis-z/kinematic-studio" },
+      // { label: "Try it", url: "https://…" }, // TODO: add once it's hosted
+      { label: "Source", url: "https://github.com/travis-z/kinematic-studio" },
     ],
-
-    // The short version. Someone skimming should get the whole project from these three.
-    summary: {
-      problem:
-        "Sizing a linkage, like a four-bar or a motor-driven arm, usually means going back and forth between CAD, a spreadsheet and hand calcs to answer two questions: does it move the way I want, and what do the motor and each joint have to hold?", // TODO: your words, ideally a real situation you were in
-      approach:
-        "One tool that does both in the browser. You sketch the mechanism with CAD-style constraints, drive it with a motor or cylinder, and read off motion, holding torque and joint loads at every pose. Nothing to install and no account.",
-      outcome:
-        "A working app with a Newton–Raphson kinematic solver, Lagrange-multiplier statics, four-bar path fitting, and 94 unit tests plus a browser end-to-end suite.",
-    },
-
-    timeline: [
+    milestones: [
       {
         date: "2026-10-08",
         title: "First working version",
-        tag: "Build",
-        body: `
-Started from the math. Each moving link is a rigid body with position and angle; joints, sliders, welds and actuators become constraint equations, and the solver finds the pose that satisfies all of them.
-
-- **Position solver:** Newton–Raphson with an SVD pseudo-inverse and a line search. Each frame starts from a prediction off the last two, so it stays on the same assembly branch as the mechanism moves.
-- **Statics:** applied loads go into the same constraint Jacobian, \`Φqᵀλ = Q\`, which gives every pin reaction, weld moment and motor torque at once, and says when the answer is indeterminate rather than guessing.
-- **Path fitting:** give it target points and it searches for a four-bar whose coupler passes through them (Nelder–Mead, several seeded starts, in a Web Worker).
-`,
-        images: [
-          {
-            src: "/img/kinematic-studio/v1-fourbar-motion.jpg",
-            alt: "First version of Kinematic Studio simulating a four-bar crank-rocker with motion charts.",
-            caption: "The first version: the solver worked, the interface was busy.",
-          },
-        ],
+        text: "The math came first: a solver that finds every link's position as the mechanism moves, and the force each joint and motor has to hold. It worked, but the screen was crowded.",
+        image: "/img/kinematic-studio/v1-fourbar-motion.jpg",
+        imageAlt: "First version of Kinematic Studio simulating a four-bar linkage, with motion charts underneath.",
       },
       {
         date: "2026-10-09",
-        title: "Redesign without touching the math",
-        tag: "Design",
-        body: `
-The numbers were right but the screen was hard to read. I audited it and found 15 font sizes, 13 corner radii, about 80 hard-coded colors and 10 shadows. I replaced them with a small design system: 4 type sizes, 2 radii, one set of color tokens for light and dark.
-
-The rule for this pass was that no solver, statics or analysis code could change, so every computed value stayed identical and the tests proved it. Along the way the redesign turned up three real bugs, including a CSV export that raced the background solver after a reload.
-`,
-        compare: {
-          before: {
-            src: "/img/kinematic-studio/v1-fourbar-motion.jpg",
-            alt: "Before the redesign.",
-          },
-          after: {
-            src: "/img/kinematic-studio/v2-fourbar-motion.jpg",
-            alt: "After the redesign: same mechanism, same values.",
-          },
-          caption: "Same mechanism, same numbers. Only how they're shown changed.",
-        },
+        title: "Redesign, same numbers",
+        text: "Cut 15 font sizes down to 4 and about 80 one-off colors down to one palette. No solver code changed, and the tests showed every result stayed identical.",
+        image: "/img/kinematic-studio/v2-fourbar-motion.jpg",
+        imageAlt: "The same four-bar linkage after the visual redesign.",
       },
       {
         date: "2026-11-26",
-        title: "Reworked around how CAD users already work",
-        tag: "UX",
-        body: `
-People who design mechanisms already know SolidWorks-style tools, so I rebuilt the layout around that: a tool bar in the order you build a mechanism, a model tree on the left, properties on the right, and a play/stop transport for the motion.
-
-Links are now drawn as physical bars, and selecting two links offers the usual sketch relations (equal, parallel, perpendicular, collinear, angle) with the symbols a CAD user expects.
-`,
-        compare: {
-          before: {
-            src: "/img/kinematic-studio/v2-fourbar-motion.jpg",
-            alt: "Layout before the UX overhaul.",
-          },
-          after: {
-            src: "/img/kinematic-studio/v3-fourbar-motion.jpg",
-            alt: "CAD-style layout with a model tree, tool bar and properties panel.",
-          },
-        },
+        title: "Laid out like CAD",
+        text: "Rebuilt around how SolidWorks users already work: tools in build order, a model tree, a properties panel, play/stop for the motion, and sketch relations between links.",
+        image: "/img/kinematic-studio/v3-fourbar-motion.jpg",
+        imageAlt: "CAD-style layout with a model tree on the left, properties on the right and the linkage in the middle.",
       },
       {
         date: "2026-11-27",
         title: "Joint loads you can design to",
-        tag: "Analysis",
-        body: `
-For each weld or pin, the app reports axial force, shear and moment at the worst pose, plus the min, max and range over the motion, since the range is what matters for fatigue. If the mechanism can't be solved, it says why and offers a fix, such as turning a pivot into a weld.
-`,
-        images: [
-          {
-            src: "/img/kinematic-studio/joint-loads.jpg",
-            alt: "A motor-held arm with payloads, showing the weld's force, shear and moment table at the worst pose.",
-            caption: "A motor-held arm: holding torque on the canvas, weld loads in the table below.",
-          },
-        ],
+        text: "Axial force, shear and moment at every weld or pin, at the worst pose, plus the swing over the whole motion for fatigue checks.",
+        image: "/img/kinematic-studio/joint-loads.jpg",
+        imageAlt: "A motor-driven arm carrying payloads, with the weld's force and moment table underneath.",
       },
       {
-        date: "Next",
+        date: "",
         title: "Public release",
-        tag: "Planned",
+        text: "Hosting it on Cloudflare so anyone can open it from a link.",
         upcoming: true,
-        body: `Host it on Cloudflare so anyone can open it from a link.`,
       },
     ],
-
-    lessons: [
-      "Writing the numerical methods down (tolerances, failure cases, what isn't modeled) made the solver better, because every vague spot became obvious.",
-      "Keeping the math and the interface separate meant I could redesign the whole UI and prove with tests that no result changed.",
-    ], // TODO: your words
   },
 
-  // ---------------------------------------------------------------------------
-  // TEMPLATE: copy this block above the line, fill it in, and set draft: false.
-  // Drafts are left out of the built site.
   {
-    draft: true,
-    slug: "project-two",
-    title: "Project title",
-    tagline: "One sentence on what it is and why it matters.",
-    status: "Completed",
-    period: "Jan 2025 – May 2025",
-    role: "Your role, team size",
-    tools: ["Tool", "Tool"],
-    cover: "", // e.g. "/img/project-two/cover.jpg" (put images in static/img/project-two/)
-    coverAlt: "",
+    slug: "texas-aerial-robotics",
+    title: "Texas Aerial Robotics",
+    color: "#1f8a5b",
+    years: "", // TODO
+    tagline: "TODO: one sentence on the team and what you worked on.",
+    role: "", // TODO
     links: [],
-    summary: {
-      problem: "What needed solving, and for whom.",
-      approach: "What you did about it.",
-      outcome: "What happened. Numbers if you have them.",
-    },
-    timeline: [
-      {
-        date: "2025-01-15",
-        title: "Milestone title",
-        tag: "Research",
-        body: "What happened at this point, what you decided, and why.",
-        images: [], // { src, alt, caption }
-      },
+    milestones: [
+      // TODO: replace these placeholders with real milestones.
+      { date: "", title: "Placeholder: joined the team", text: "What the team was building and where you fit in." },
+      { date: "", title: "Placeholder: what you built", text: "Your part of the vehicle or software." },
+      { date: "", title: "Placeholder: competition", text: "How it went and what you'd do differently." },
     ],
-    lessons: [],
   },
 ];

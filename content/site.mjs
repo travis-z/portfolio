@@ -1,18 +1,17 @@
-// Your details. Everything here shows on the home page and in link previews.
+// Your details, shown at the top of the page and in link previews.
 // Leave a field as "" to hide it.
 
 export const site = {
-  name: "Travis Zavaleta", // TODO: check how you want your name shown
-  headline: "Engineer who builds tools for designing mechanisms", // TODO: one line, your words
+  name: "Travis Zavaleta",
+  photo: "/img/travis.jpg",
+  photoAlt: "Travis Zavaleta standing on a tree-lined road.",
+  // One or two sentences under your name. TODO: put this in your own words.
   intro:
-    "I like problems where the math, the hardware and the software all have to agree. " +
-    "Below are projects I've worked on, each told as a timeline of how it actually went: " +
-    "what I tried, what broke, and what I changed.", // TODO: 2–3 sentences, your words
-  location: "", // e.g. "Austin, TX"
-  email: "", // e.g. "you@example.com"
-  linkedin: "", // full URL
+    "I build drones, robots and the software to design them. Each project below is a timeline: move along it to see where things stood at each step.",
+  linkedin: "https://www.linkedin.com/in/traviszavaleta",
   github: "https://github.com/travis-z",
-  resume: "", // e.g. "/resume.pdf" (put the PDF in static/)
-  // Address the site will live at. Used for link previews (LinkedIn, Slack, email).
-  url: "https://portfolio.traviszavaleta.workers.dev",
+  instagram: "https://www.instagram.com/traviszavaleta/",
+  email: "", // optional, e.g. "you@example.com"
+  resume: "", // optional, e.g. "/resume.pdf" (put the PDF in static/)
+  url: "https://portfolio.traviszavaleta.workers.dev", // the live address, for link previews
 };
